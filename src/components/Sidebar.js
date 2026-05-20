@@ -6,23 +6,22 @@ import { Icons } from './UI';
 
 const NAV = {
   Admin: [
-    { to: '/admin',           label: 'Dashboard',    Icon: Icons.Dashboard },
-    { to: '/admin/lots',      label: 'Parking Lots', Icon: Icons.Lot },
-    { to: '/admin/spotmap',   label: 'Spot Map',     Icon: Icons.Spot },
-    { to: '/admin/tickets',   label: 'Tickets',      Icon: Icons.Ticket },
-    { to: '/admin/tariffs',   label: 'Tariffs',      Icon: Icons.Tariff },
-    { to: '/admin/revenue',   label: 'Revenue',      Icon: Icons.Revenue },
-    { to: '/admin/users',     label: 'Users',        Icon: Icons.Users },
+    { to: '/admin',              label: 'Dashboard',   Icon: Icons.Dashboard },
+    { to: '/admin/lots',         label: 'Parking Lots', Icon: Icons.Lot },
+    { to: '/admin/tickets',      label: 'Tickets',     Icon: Icons.Ticket },
+    { to: '/admin/tariffs',      label: 'Tariffs',     Icon: Icons.Tariff },
+    { to: '/admin/revenue',      label: 'Revenue',     Icon: Icons.Revenue },
+    { to: '/admin/users',        label: 'Users',       Icon: Icons.Users },
+    { to: '/admin/predictions',  label: 'Predictions', Icon: Icons.Predict },
   ],
   Attendant: [
-    { to: '/attendant',          label: 'Dashboard', Icon: Icons.Dashboard },
-    { to: '/attendant/tickets',  label: 'Tickets',   Icon: Icons.Ticket },
-    { to: '/attendant/spots',    label: 'Spot Map',  Icon: Icons.Spot },
+    { to: '/attendant',         label: 'Dashboard', Icon: Icons.Dashboard },
+    { to: '/attendant/tickets', label: 'Tickets',   Icon: Icons.Ticket },
+    { to: '/attendant/spots',   label: 'Spot Map',  Icon: Icons.Spot },
   ],
   Viewer: [
-    { to: '/viewer',          label: 'Overview', Icon: Icons.Dashboard },
-    { to: '/viewer/tickets',  label: 'Tickets',  Icon: Icons.Ticket },
-    { to: '/viewer/spots',    label: 'Spot Map', Icon: Icons.Spot },
+    { to: '/viewer',       label: 'Overview', Icon: Icons.Dashboard },
+    { to: '/viewer/spots', label: 'Spot Map', Icon: Icons.Spot },
   ],
 };
 
@@ -31,12 +30,16 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const links = NAV[user?.role] || NAV.Viewer;
 
-  function handleLogout() { logout(); navigate('/login'); }
+  function handleLogout() {
+    logout();
+    navigate('/login');
+  }
 
   const initials = user?.username?.slice(0, 2).toUpperCase() || 'SP';
 
   return (
     <aside className="sidebar">
+      {/* Logo */}
       <div className="sidebar-logo">
         <div className="sidebar-logo-mark">
           <div className="logo-icon">
@@ -50,6 +53,7 @@ export default function Sidebar() {
         <div className="sidebar-logo-sub">Management System</div>
       </div>
 
+      {/* Nav links */}
       <nav className="sidebar-nav">
         <div className="nav-section-label">Navigation</div>
         {links.map(({ to, label, Icon }) => (
@@ -65,6 +69,7 @@ export default function Sidebar() {
         ))}
       </nav>
 
+      {/* User footer */}
       <div className="sidebar-footer">
         <div className="user-pill">
           <div className="user-avatar">{initials}</div>

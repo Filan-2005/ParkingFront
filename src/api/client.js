@@ -1,7 +1,10 @@
 // src/api/client.js
+// Central API client – all calls go through here.
+// The base URL is set once in src/config.js.
+
 import API_BASE_URL from '../config';
 
-let TOKEN = '';
+let TOKEN = localStorage.getItem('sp_token') || '';
 
 export function setToken(t) {
   TOKEN = t;
@@ -26,25 +29,7 @@ async function request(path, opts = {}) {
     throw new Error(body || `HTTP ${res.status}`);
   }
   const text = await res.text();
-  if (!text) return null;
-  const data = JSON.parse(text);
-  return normalize(data);
-}
-
-function normalize(val) {
-  if (Array.isArray(val)) return val.map(normalize);
-  if (val !== null && typeof val === 'object') {
-    const out = {};
-    for (const [k, v] of Object.entries(val)) {
-      out[k] = normalize(v);
-      const camel = k.charAt(0).toLowerCase() + k.slice(1);
-      if (camel !== k && !(camel in val)) {
-        out[camel] = normalize(v);
-      }
-    }
-    return out;
-  }
-  return val;
+  return text ? JSON.parse(text) : null;
 }
 
 export const api = {
@@ -58,6 +43,7 @@ export const api = {
   createLot:          (body)     => request('/api/parkinglot', { method: 'POST', body: JSON.stringify(body) }),
   updateLot:          (id, body) => request(`/api/parkinglot/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteLot:          (id)       => request(`/api/parkinglot/${id}`, { method: 'DELETE' }),
+  // Returns { availableSpots:[...], occupiedSpots:[...], unavailableSpots:[...] }
   getLotAvailability: (id)       => request(`/api/parkinglot/${id}/availability`),
   getLotCount:        (id)       => request(`/api/parkinglot/${id}/availability/count`),
   getOpenTickets:     (id)       => request(`/api/parkinglot/${id}/tickets/open`),
@@ -70,13 +56,10 @@ export const api = {
   deleteSpot: (id)       => request(`/api/parkingspot/${id}`, { method: 'DELETE' }),
 
   // ── Tickets ──────────────────────────────────
-  createTicket:          (body, vType)         => request(`/api/tickets?VecType=${vType}`, { method: 'POST', body: JSON.stringify(body) }),
-  previewTicket:         (id)                  => request(`/api/tickets/${id}/preview`),
-  closeTicket:           (id, paid, method)    => request(`/api/tickets/${id}/close?PaidAmount=${paid}&Method=${method}`, { method: 'POST' }),
-  searchTickets:         (body)                => request('/api/tickets/search', { method: 'POST', body: JSON.stringify(body) }),
-  // Plate-based — used by Viewer (no ticket ID required)
-  previewTicketByPlate:  (plate)               => request('/api/tickets/preview/plate', { method: 'POST', body: JSON.stringify({ plate }) }),
-  closeTicketByPlate:    (plate, paid, method) => request(`/api/tickets/close/plate?PaidAmount=${paid}&Method=${method}`, { method: 'POST', body: JSON.stringify({ plate }) }),
+  createTicket:  (body, vType)      => request(`/api/tickets?VecType=${vType}`, { method: 'POST', body: JSON.stringify(body) }),
+  previewTicket: (id)               => request(`/api/tickets/${id}/preview`),
+  closeTicket:   (id, paid, method) => request(`/api/tickets/${id}/close?PaidAmount=${paid}&Method=${method}`, { method: 'POST' }),
+  searchTickets: (body)             => request('/api/tickets/search', { method: 'POST', body: JSON.stringify(body) }),
 
   // ── Tariffs ──────────────────────────────────
   getTariffsForLot: (lotId) => request(`/api/tariff/lot/${lotId}`),
@@ -87,9 +70,14 @@ export const api = {
   // ── Payments ─────────────────────────────────
   getPayment: (ticketId) => request(`/api/payment/${ticketId}`),
 
-  // ── Users ─────────────────────────────────────
+  // ── Users (admin) — correct paths per ManageUserController ──
   getUsers:       ()     => request('/api/manageuser/all'),
   createUser:     (body) => request('/api/manageuser/create', { method: 'POST', body: JSON.stringify(body) }),
   deactivateUser: (id)   => request(`/api/manageuser/deactivate/${id}`, { method: 'POST' }),
   reactivateUser: (id)   => request(`/api/manageuser/reactivate/${id}`, { method: 'POST' }),
+
+  // ── Predictions (admin only) ──────────────────
+  predictNow:    (lotId)           => request(`/api/prediction/${lotId}/now`),
+  predictNext24: (lotId)           => request(`/api/prediction/${lotId}/next24hours`),
+  predictAt:     (lotId, datetime) => request(`/api/prediction/${lotId}/at?datetime=${encodeURIComponent(datetime)}`),
 };
